@@ -7,7 +7,6 @@ from google.adk.models import LlmResponse, LlmRequest
 
 
 llm = 'gemini-2.5-flash'
-# llm = "gemini-2.5-pro"
 
 
 def set_mountain(tool_context: ToolContext, mountain: str):
@@ -160,8 +159,13 @@ aggregator_agent = Agent(
         対策: 冬用の登山靴、防水・透湿性のあるアウターシェル、保温性の高いミドルレイヤー、ベースレイヤーによる重ね着を徹底する。温かい飲み物など、十分な水分と行動食を携行する。汗をかきすぎないよう、こまめな着脱で体温を調節する。
 
     6. リンク
-       A list of important links for the hike.
-    
+       Include the following links in markdown format:
+
+       **役に立つサービス:**
+        - YamaReco: https://www.yamareco.com/
+        - Yamap: https://yamap.com/
+        - Cocoheli: https://www.cocoheli.com/
+           
     Be brief and concise in your responses.
     The current date is {current_date}.
     The report must be written in the language the user talks to you.
@@ -179,9 +183,11 @@ links_agent = Agent(
     "Hiking Dates: {hiking_dates}"
     "Your role is to find the links to websites that are important for the hike."
     "This includes links to official mountain websites, trail information pages, emergency information and any other relevant resources."
+    "Search for the mountain in yamap.com and add the link to your list."
     "Your output should be a list of URLs and their titles in markdown format."
     "The current date is {current_date}.",
     output_key="info_links",
+    tools=[google_search],
 )
 
 research_team = ParallelAgent(
