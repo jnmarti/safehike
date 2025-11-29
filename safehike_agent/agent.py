@@ -7,6 +7,7 @@ from google.adk.models import LlmResponse, LlmRequest
 from fastapi import FastAPI
 from ag_ui_adk import ADKAgent, add_adk_fastapi_endpoint
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 
 load_dotenv()
@@ -43,6 +44,55 @@ def initialize_hiking_context(callback_context: CallbackContext, llm_request: Ll
     callback_context.state["trail"] = None
     callback_context.state["current_date"] = get_current_date()
 
+
+class WeatherReportItem(BaseModel):
+    date: str = Field(..., description="The date of the weather forecast in 'YYYY-MM-DD' format.")
+    max_temperature: str = Field(..., description="The maximum temperature forecasted for the day.")
+    min_temperature: str = Field(..., description="The minimum temperature forecasted for the day.")
+    precipitation_probability: str = Field(..., description="The probability of precipitation for the day.")
+    wind_speed: str = Field(..., description="The wind speed forecasted for the day.")
+
+
+class RiskAnalysisItem(BaseModel):
+    risk: str = Field(..., description="The name of the risk.")
+    relevance: str = Field(..., description="A brief explanation of the relevance of the risk to the hike.")
+    recommendations: str = Field(..., description="Recommendations on how to mitigate that risk during the hike.")
+
+class TrailInfoItem(BaseModel):
+    name: str = Field(..., description="The name of the trail.")
+    difficulty_level: str = Field(..., description="The difficulty level of the trail.")
+    estimated_ascent_time: str = Field(..., description="The estimated ascent hiking time for the trail.")
+    estimated_descent_time: str = Field(..., description="The estimated descent hiking time for the trail.")
+
+
+class LinksItem(BaseModel):
+    title: str = Field(..., description="The title of the link.")
+    url: str = Field(..., description="The URL of the link.")
+
+class HikingReport(BaseModel):
+    summary: str = Field(..., description="A brief summary of the hiking report in markdown format.")
+    risk_emojis: list[str] = Field(..., description="A list of the emojis that represent the risks identified for this hike. There are five risks you must consider: 熊（🐻）, 高山病（🧠）, 強風（🌬️）, 低体温症（🥶）, 滑落（🤕）")
+    weather_report: list[WeatherReportItem] = Field(..., description="A summary of the weather forecast for the hiking dates.")
+    relevant_news: list[str] = Field(..., description="A list of the relevant news that may impact hiking safety. Each item should be in markdown format.")
+    trails_info: list[TrailInfoItem] = Field(..., description="A list of trails relevant to the hike, each with its difficulty level and estimated hiking times.")
+    risk_analysis: str = Field(
+        ...,
+        description="""
+       - Analysis of potential risks based on weather and news information. The following is a list of the risks you must consider:
+        熊, 高山病, 強風, 低体温症, 滑落
+        Please include only the risks that are relevant to the hiking conditions.
+        For each of the risks include:
+        1) a brief explanation of the relevance of the risk to the hike
+        2) recommendations on how to mitigate that risk during the hike
+        Example:
+
+        滑落
+        2月は積雪や凍結路面が予想されており、特に「403段の石段」や「石割神社から山頂への急登」は滑りやすくなるため、転倒や滑落のリスクが高いです。
+        対策: 冬用の登山靴、防水・透湿性のあるアウターシェル、保温性の高いミドルレイヤー、ベースレイヤーによる重ね着を徹底する。温かい飲み物など、十分な水分と行動食を携行する。汗をかきすぎないよう、こまめな着脱で体温を調節する。
+        """,
+    )
+    links: list[LinksItem] = Field(..., description="A list of relevant links for the hike.")
+
 weather_agent = Agent(
     model=llm,
     name='weather_agent',
@@ -58,6 +108,7 @@ weather_agent = Agent(
     "The current date is {current_date}.",
     tools=[google_search],
     output_key="weather_report",
+    include_contents="none",
 )
 
 news_agent = Agent(
@@ -75,6 +126,7 @@ news_agent = Agent(
     "The current date is {current_date}.",
     tools=[google_search],
     output_key="news_report",
+    include_contents="none",
 )
 
 trail_agent = Agent(
@@ -103,6 +155,7 @@ trail_agent = Agent(
     "The current date is {current_date}.",
     tools=[google_search],
     output_key="trail_report",
+    include_contents="none",
 )
 
 aggregator_agent = Agent(
@@ -129,54 +182,13 @@ aggregator_agent = Agent(
 
     **Important Links:**
     {info_links}
-    
-    Your report must follow the following structure:
-    Title: ハイキングレポート
-    1. 概要
-       - Brief description of the mountain and hiking dates.
-       - A list of emojis representing the risks identified for the hike. There are five risks you must consider: 熊（🐻）, 高山病（🧠）, 強風（🌬️）, 低体温症（🥶）, 滑落（🤕）.
-         It should simply be a sequence of emojis without any additional text or explanation. It should be on a separate line.
-         For example:
-
-         **リスク：🐻 🌬️ 🥶
-    2. 天気予報
-       A summary of the weather forecast for the hiking dates. For each of the dates include the following items:
-       - 最高気温
-       - 最低気温
-       - 降水確率
-       - 風速
-    3. 関連ニュース
-       - Summary of recent news that may impact hiking safety.
-    4. 登山道情報
-       - List of trails, each with the following items:
-         - difficulty level
-         - estimated hiking time (ascent, descent).
-    5. リスク分析
-       - Analysis of potential risks based on weather and news information. The following is a list of the risks you must consider:
-        熊, 高山病, 強風, 低体温症, 滑落
-        Please include only the risks that are relevant to the hiking conditions.
-        For each of the risks include:
-        1) a brief explanation of the relevance of the risk to the hike
-        2) recommendations on how to mitigate that risk during the hike
-        Example:
-
-        滑落
-        2月は積雪や凍結路面が予想されており、特に「403段の石段」や「石割神社から山頂への急登」は滑りやすくなるため、転倒や滑落のリスクが高いです。
-        対策: 冬用の登山靴、防水・透湿性のあるアウターシェル、保温性の高いミドルレイヤー、ベースレイヤーによる重ね着を徹底する。温かい飲み物など、十分な水分と行動食を携行する。汗をかきすぎないよう、こまめな着脱で体温を調節する。
-
-    6. リンク
-       Include the following links in markdown format:
-
-       **役に立つサービス:**
-        - YamaReco: https://www.yamareco.com/
-        - Yamap: https://yamap.com/
-        - Cocoheli: https://www.cocoheli.com/
            
     Be brief and concise in your responses.
     The current date is {current_date}.
     The report must be written in the language the user talks to you.
     """,
     output_key="hiking_report",
+    output_schema=HikingReport,
 )
 
 links_agent = Agent(
@@ -194,6 +206,7 @@ links_agent = Agent(
     "The current date is {current_date}.",
     output_key="info_links",
     tools=[google_search],
+    include_contents="none",
 )
 
 research_team = ParallelAgent(
@@ -218,7 +231,7 @@ root_agent = Agent(
     tools=[set_mountain, set_hiking_dates, get_current_date],
     before_model_callback=initialize_hiking_context,
     sub_agents=[workflow],
-    output_key="hiking_report",
+    include_contents="none",
 )
 
 app = FastAPI(title="Safehike: Safety-first hiking AI assistant")

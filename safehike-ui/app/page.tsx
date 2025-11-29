@@ -13,6 +13,8 @@ import {
   AlertTitle,
 } from "@/components/ui/alert"
 
+import CustomAssistantMessage from "./components/CustomAssistantMessage";
+
 type AgentState = {
   mountain: string | null;
   hiking_dates: string | null;
@@ -32,6 +34,8 @@ export default function SafehikeChat() {
   const { state } = useCoAgent<AgentState>({
     name: "safehike",
   })
+
+  console.log(state)
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-10">
@@ -56,6 +60,7 @@ export default function SafehikeChat() {
             title: "Safehike",
             initial: "Let's plan your hike. Tell me where you want to go!",
           }}
+          AssistantMessage={CustomAssistantMessage}
         />
       </div>
     </main>
