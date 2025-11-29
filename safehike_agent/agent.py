@@ -4,6 +4,12 @@ from google.adk.tools import google_search
 from google.adk.tools.tool_context import ToolContext
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models import LlmResponse, LlmRequest
+from fastapi import FastAPI
+from ag_ui_adk import ADKAgent, add_adk_fastapi_endpoint
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 llm = 'gemini-2.5-flash'
@@ -213,3 +219,14 @@ root_agent = Agent(
     before_model_callback=initialize_hiking_context,
     sub_agents=[workflow],
 )
+
+app = FastAPI(title="Safehike: Safety-first hiking AI assistant")
+safehike_agent = ADKAgent(
+    adk_agent=root_agent,
+    app_name="safehike_agent",
+    user_id="demo_user",
+    session_timeout_seconds=3600,
+    use_in_memory_services=True,
+)
+add_adk_fastapi_endpoint(app, safehike_agent, path="/")
+

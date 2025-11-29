@@ -5,7 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+    "ag-ui-adk>=0.3.4",
+    "fastapi[standard]>=0.118.3",
     "google-adk>=1.18.0",
+    "python-dotenv>=1.2.1",
     "python-multipart>=0.0.20",
     "requests>=2.32.5",
+    "uvicorn>=0.38.0",
 ]
