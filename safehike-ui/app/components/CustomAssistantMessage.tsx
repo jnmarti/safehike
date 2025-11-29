@@ -4,6 +4,8 @@ import ToolCall from './ToolCall';
 import Markdown from 'react-markdown'
 import ThinkingBubble from './ThinkingBubble';
 
+import { Badge } from "@/components/ui/badge"
+
 type WeatherReportItem = {
   date: string;
   max_temperature: string;
@@ -123,6 +125,10 @@ const ListLabel = ({ label, value }: { label: string; value: string }) => (
 );
 
 export default function CustomAssistantMessage(assistantMessageProps: AssistantMessageProps) {
+
+  if (assistantMessageProps.message?.id == "Let's plan your hike. Tell me where you want to go!") {
+    return <div className="scroll-m-20 text-xl font-semibold tracking-tight py-4">"Hi! I'm Safehike, your safety-first hiking assistant. Let's plan a safe and enjoyable hike together!" </div>
+  }
     // It's a tool call
     if (assistantMessageProps.message?.toolCalls && assistantMessageProps.message.toolCalls.length > 0) {
       return <ToolCall toolCallTitle={assistantMessageProps.message.name || ""} isComplete={true} />
@@ -142,9 +148,9 @@ export default function CustomAssistantMessage(assistantMessageProps: AssistantM
             </div>
             <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-lg">
               {hikingReport.risk_emojis.map((emoji) => (
-                <span key={emoji} aria-label="risk" role="img">
+                <Badge key={emoji}>
                   {emoji}
-                </span>
+                </Badge>
               ))}
             </div>
           </div>
@@ -162,7 +168,7 @@ export default function CustomAssistantMessage(assistantMessageProps: AssistantM
                   {hikingReport.weather_report.map((item) => (
                     <div
                       key={item.date}
-                      className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm"
+                      className="bg-white p-3"
                     >
                       <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                         {item.date}
