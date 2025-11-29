@@ -5,7 +5,7 @@ import React from "react"
 
 export default function ToolCall({toolCallTitle, isComplete}: {toolCallTitle: string, isComplete: boolean}) {
   return (
-    <Alert className="my-4">
+    <Alert className="my-3">
     {isComplete ? <Check /> : <Spinner />}
     <AlertTitle>
         {toolCallTitle}

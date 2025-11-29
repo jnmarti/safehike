@@ -6,6 +6,14 @@ import ThinkingBubble from './ThinkingBubble';
 
 import { Badge } from "@/components/ui/badge"
 
+import {
+  Item,
+  ItemContent,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item"
+import { Spinner } from "@/components/ui/spinner"
+
 type WeatherReportItem = {
   date: string;
   max_temperature: string;
@@ -153,6 +161,19 @@ const ListLabel = ({ label, value }: { label: string; value: string }) => (
 );
 
 export default function CustomAssistantMessage(assistantMessageProps: AssistantMessageProps) {
+
+  if (assistantMessageProps.isGenerating || assistantMessageProps.isLoading) {
+      return (
+        <Item>
+          <ItemMedia>
+            <Spinner />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle className="line-clamp-1">処理中...</ItemTitle>
+          </ItemContent>
+        </Item>
+      )
+  }
 
   if (assistantMessageProps.message?.id == "Let's plan your hike. Tell me where you want to go!") {
     return <div className="scroll-m-20 text-xl font-semibold tracking-tight py-4">"Hi! I'm Safehike, your safety-first hiking assistant. Let's plan a safe and enjoyable hike together!" </div>

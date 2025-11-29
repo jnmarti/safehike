@@ -108,7 +108,8 @@ weather_agent = Agent(
     "You must use the `google_search` tool to look up the weather forecast for that mountain on that date."
     "Please use information from the `https://weathernews.jp/mountain/` when obtaining weather data. Provide the user a link to the relevant weather page."
     "Be brief and concise in your responses."
-    "The current date is {current_date}.",
+    "The current date is {current_date}."
+    "Your output must be in Japanese.",
     tools=[google_search],
     output_key="weather_report",
     include_contents="none",
@@ -126,7 +127,8 @@ news_agent = Agent(
     "News should include the following topics: recent accidents, trail closures, wildlife activity, and any other relevant information."
     "You must use the `google_search` tool to look up for news that may be relevant to that mountain and the dates of the hike."
     "Be brief and concise in your responses."
-    "The current date is {current_date}.",
+    "The current date is {current_date}."
+    "Your output must be in Japanese.",
     tools=[google_search],
     output_key="news_report",
     include_contents="none",
@@ -155,7 +157,8 @@ trail_agent = Agent(
     "Provide information about the difficulty level, estimated hiking time (ascent, descent, rest), and a list of safety considerations for that trail,"
     "taking into account the weather and news information already collected."
     "In all cases, use the `google_search` tool to look up information about the trails on the target mountain."
-    "The current date is {current_date}.",
+    "The current date is {current_date}."
+    "Your output must be in Japanese.",
     tools=[google_search],
     output_key="trail_report",
     include_contents="none",
@@ -188,7 +191,7 @@ aggregator_agent = Agent(
            
     Be brief and concise in your responses.
     The current date is {current_date}.
-    The report must be written in the language the user talks to you.
+    The report must be written in Japanese.
     """,
     output_key="hiking_report",
     output_schema=HikingReport,
@@ -230,7 +233,8 @@ root_agent = Agent(
     "First, use the `set_mountain` and `set_hiking_dates` tools to record the mountain and hiking dates provided by the user."
     "Then, delegate the task of researching weather forecasts and recent news to your workflow agent."
     "Finally, compile the information into a comprehensive hiking report for the user."
-    "Important: the dates provided by the user are relative to the current date. For example, if someone says that they will hike on June 4th, they mean June 4th of the current year.",
+    "Important: the dates provided by the user are relative to the current date. For example, if someone says that they will hike on June 4th, they mean June 4th of the current year."
+    "Your output must be in Japanese.",
     tools=[set_mountain, set_hiking_dates, get_current_date],
     before_model_callback=initialize_hiking_context,
     sub_agents=[workflow],
