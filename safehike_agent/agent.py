@@ -53,8 +53,12 @@ class WeatherReportItem(BaseModel):
     wind_speed: str = Field(..., description="The wind speed forecasted for the day.")
 
 
+class Risk(BaseModel):
+    name: str = Field(..., description="The name of the risk.")
+    emoji: str = Field(..., description="The emoji that represents the risk.")
+
 class RiskAnalysisItem(BaseModel):
-    risk: str = Field(..., description="The name of the risk.")
+    risk: Risk = Field(..., description="The risk item.")
     relevance: str = Field(..., description="A brief explanation of the relevance of the risk to the hike.")
     recommendations: str = Field(..., description="Recommendations on how to mitigate that risk during the hike.")
 
@@ -63,7 +67,6 @@ class TrailInfoItem(BaseModel):
     difficulty_level: str = Field(..., description="The difficulty level of the trail.")
     estimated_ascent_time: str = Field(..., description="The estimated ascent hiking time for the trail.")
     estimated_descent_time: str = Field(..., description="The estimated descent hiking time for the trail.")
-
 
 class LinksItem(BaseModel):
     title: str = Field(..., description="The title of the link.")
@@ -75,11 +78,11 @@ class HikingReport(BaseModel):
     weather_report: list[WeatherReportItem] = Field(..., description="A summary of the weather forecast for the hiking dates.")
     relevant_news: list[str] = Field(..., description="A list of the relevant news that may impact hiking safety. Each item should be in markdown format.")
     trails_info: list[TrailInfoItem] = Field(..., description="A list of trails relevant to the hike, each with its difficulty level and estimated hiking times.")
-    risk_analysis: str = Field(
+    risk_analysis: list[RiskAnalysisItem] = Field(
         ...,
         description="""
        - Analysis of potential risks based on weather and news information. The following is a list of the risks you must consider:
-        熊, 高山病, 強風, 低体温症, 滑落
+        熊（🐻）, 高山病（🧠）, 強風（🌬️）, 低体温症（🥶）, 滑落（🤕）
         Please include only the risks that are relevant to the hiking conditions.
         For each of the risks include:
         1) a brief explanation of the relevance of the risk to the hike

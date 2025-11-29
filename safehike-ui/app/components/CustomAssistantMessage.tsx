@@ -26,13 +26,24 @@ type LinksItem = {
   url: string;
 };
 
+type Risk = {
+  name: string;
+  emoji: string;
+};
+
+type RiskAnalysisItem = {
+  risk: Risk;
+  relevance: string;
+  recommendations: string;
+};
+
 type HikingReport = {
   summary: string;
   risk_emojis: string[];
   weather_report: WeatherReportItem[];
   relevant_news: string[];
   trails_info: TrailInfoItem[];
-  risk_analysis: string;
+  risk_analysis: RiskAnalysisItem[];
   links: LinksItem[];
 };
 
@@ -74,13 +85,30 @@ const isLinksArray = (value: unknown): value is LinksItem[] =>
       typeof (item as LinksItem).url === 'string',
   );
 
+const isRisk = (value: unknown): value is Risk =>
+  !!value &&
+  typeof value === 'object' &&
+  typeof (value as Risk).name === 'string' &&
+  typeof (value as Risk).emoji === 'string';
+
+const isRiskAnalysisArray = (value: unknown): value is RiskAnalysisItem[] =>
+  Array.isArray(value) &&
+  value.every(
+    (item) =>
+      item &&
+      typeof item === 'object' &&
+      isRisk((item as RiskAnalysisItem).risk) &&
+      typeof (item as RiskAnalysisItem).relevance === 'string' &&
+      typeof (item as RiskAnalysisItem).recommendations === 'string',
+  );
+
 const isHikingReport = (data: unknown): data is HikingReport => {
   if (!data || typeof data !== 'object') return false;
   const report = data as Record<string, unknown>;
 
   return (
     typeof report.summary === 'string' &&
-    typeof report.risk_analysis === 'string' &&
+    isRiskAnalysisArray(report.risk_analysis) &&
     isStringArray(report.risk_emojis) &&
     isStringArray(report.relevant_news) &&
     isWeatherReportArray(report.weather_report) &&
@@ -138,7 +166,7 @@ export default function CustomAssistantMessage(assistantMessageProps: AssistantM
     const hikingReport =
       typeof rawContent === 'string' ? parseHikingReport(rawContent) : null;
 
-    if (hikingReport) {
+    if (hikingReport && !assistantMessageProps.isGenerating && !assistantMessageProps.isLoading) {
       return (
         <div className="my-4 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-50 shadow-lg">
           <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
@@ -217,9 +245,28 @@ export default function CustomAssistantMessage(assistantMessageProps: AssistantM
             </Section>
 
             <Section title="Risk Analysis">
-              <Markdown className="text-sm leading-relaxed text-slate-800 whitespace-pre-line">
-                {hikingReport.risk_analysis}
-              </Markdown>
+              <div className="space-y-3">
+                {hikingReport.risk_analysis.map((item) => (
+                  <div
+                    key={item.risk.name}
+                    className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Badge className="text-base leading-none">{item.risk.emoji} <div className="text-sm font-semibold text-slate-900 text-white">{item.risk.name}</div></Badge>
+                    </div>
+                    <div className="mt-3 space-y-2 text-sm leading-relaxed text-slate-800">
+                      <div>
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Relevance</div>
+                        <p className="mt-1 text-slate-800">{item.relevance}</p>
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Recommendations</div>
+                        <p className="mt-1 text-slate-800">{item.recommendations}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Section>
 
             <Section title="Essential Links">
