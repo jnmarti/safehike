@@ -218,6 +218,7 @@ root_agent = Agent(
     tools=[set_mountain, set_hiking_dates, get_current_date],
     before_model_callback=initialize_hiking_context,
     sub_agents=[workflow],
+    output_key="hiking_report",
 )
 
 app = FastAPI(title="Safehike: Safety-first hiking AI assistant")
